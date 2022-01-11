@@ -1,0 +1,22 @@
+{
+  "name": "banco_solar",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JunW4ng/Prueba-Banco-Solar.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JunW4ng/Prueba-Banco-Solar/issues"
+  },
+  "homepage": "https://github.com/JunW4ng/Prueba-Banco-Solar#readme",
+  "dependencies": {
+    "pg": "^8.7.1"
+  }
+}
