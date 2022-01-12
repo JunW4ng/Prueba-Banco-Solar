@@ -1,7 +1,7 @@
 const http = require("http");
 const fs = require("fs");
 const url = require("url");
-const { insertar } = require("./consultas");
+const { insertar, consulta, editar } = require("./consultas");
 
 http
   .createServer(async (req, res) => {
@@ -25,6 +25,26 @@ http
       req.on("end", async () => {
         const datos = Object.values(JSON.parse(body));
         const respuesta = await insertar(datos);
+        res.end(JSON.stringify(respuesta));
+      });
+    }
+
+    //? Muestra usuarios con sus balances
+    if (req.url == "/usuarios" && req.method === "GET") {
+      const registros = await consulta();
+      res.end(JSON.stringify(registros));
+    }
+
+    //? Edita usuarios con sus balances
+    if (req.url.startsWith("/usuario?") && req.method === "PUT") {
+      const { id } = url.parse(req.url, true).query;
+      let body = "";
+      req.on("data", (chunck) => {
+        body += chunck;
+      });
+      req.on("end", async () => {
+        const datos = Object.values(JSON.parse(body));
+        const respuesta = await editar(datos, id);
         res.end(JSON.stringify(respuesta));
       });
     }

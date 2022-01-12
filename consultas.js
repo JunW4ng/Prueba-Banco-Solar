@@ -25,4 +25,30 @@ const insertar = async (datos) => {
   }
 };
 
-module.exports = { insertar };
+//? Muestra usuarios con sus balances
+const consulta = async () => {
+  try {
+    const result = await pool.query("SELECT * FROM usuarios");
+    return result.rows;
+  } catch (err) {
+    console.log(err.code);
+    return err;
+  }
+};
+
+//? Edita datos de usuario y balance
+const editar = async (datos, id) => {
+  const consulta = {
+    text: `UPDATE usuarios SET nombre = $1, balance = $2 WHERE id = ${id} RETURNING *;`,
+    values: datos,
+  };
+  try {
+    const result = await pool.query(consulta);
+    console.log(result.rows[0]);
+  } catch (err) {
+    console.log(err.code);
+    return err;
+  }
+};
+
+module.exports = { insertar, consulta, editar };
