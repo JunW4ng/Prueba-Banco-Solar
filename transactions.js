@@ -1,4 +1,5 @@
 const { Pool } = require("pg");
+const moment = require("moment");
 
 const config = {
   user: "postgres",
@@ -13,6 +14,7 @@ const pool = new Pool(config);
 //? Registro de transferencia
 const registroTransferencias = async (datos) => {
   try {
+    const fecha = moment();
     const consultaEmisor = {
       text: "SELECT id FROM usuarios WHERE nombre = $1",
       values: [datos[0]],
@@ -28,8 +30,8 @@ const registroTransferencias = async (datos) => {
     const idReceptor = consultaIdReceptor.rows[0].id;
 
     const consultaRegistro = {
-      text: "INSERT INTO transferencias (emisor, receptor, monto) VALUES ($1, $2, $3) RETURNING *;", //TODO agregar
-      values: [idEmisor, idReceptor, datos[2]],
+      text: "INSERT INTO transferencias (emisor, receptor, monto, fecha) VALUES ($1, $2, $3, $4) RETURNING *;",
+      values: [idEmisor, idReceptor, datos[2], fecha],
     };
     await pool.query(consultaRegistro);
   } catch (err) {
@@ -44,7 +46,7 @@ const transferencia = async (datos) => {
     if (err_conexion) return console.log(err_conexion.code);
 
     try {
-      await consultaTransferencia();
+      await registroTransferencia();
       await registroTransferencias(datos);
 
       await client.query("BEGIN");
@@ -74,17 +76,25 @@ const transferencia = async (datos) => {
   });
 };
 
-//? Mostrar transferencia
-const consultaTransferencia = async () => {
+//? Mostrar transferencias en tabla
+const registroTransferencia = async () => {
   try {
-    const consultaEmisor = await pool.query(
-      "SELECT nombre FROM usuarios INNER JOIN transferencias ON usuarios.id = transferencias.emisor"
+    const data = await pool.query(
+      "SELECT x.nombre, y.nombre_receptor, y.monto, x.fecha FROM (SELECT * FROM usuarios INNER JOIN transferencias ON usuarios.id = transferencias.emisor) AS x INNER JOIN (SELECT nombre AS nombre_receptor, receptor, monto FROM usuarios INNER JOIN transferencias ON usuarios.id = transferencias.receptor) AS y ON x.emisor != y.receptor"
     );
-    console.log('CONSULTAAA',consultaEmisor.rows);
+    //console.log("ACAAAAA", data.rows); //! BORRAR
+    return data.rows;
   } catch (err) {
     console.log("consultarTransferencia", err);
     return err;
   }
 };
 
-module.exports = { transferencia };
+module.exports = { transferencia, registroTransferencia };
+
+/* const emisor = await pool.query(
+  "SELECT nombre AS emisor FROM usuarios INNER JOIN transferencias ON usuarios.id = transferencias.emisor"
+);
+const receptor = await pool.query(
+  "SELECT nombre AS receptor FROM usuarios INNER JOIN transferencias ON usuarios.id = transferencias.receptor"
+); */

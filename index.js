@@ -2,7 +2,7 @@ const http = require("http");
 const fs = require("fs");
 const url = require("url");
 const { insertar, consulta, editar, eliminar } = require("./userQuery");
-const { transferencia } = require("./transactions");
+const { transferencia, registroTransferencia } = require("./transactions");
 
 http
   .createServer(async (req, res) => {
@@ -70,6 +70,13 @@ http
         console.log("RESPUESTA", respuesta); //! Borrar
         res.end(JSON.stringify({ status: "ok" })); //! cambiar OK
       });
+    }
+
+    //? Mostrar tabla transferencias
+    if (req.url == "/transferencias" && req.method === "GET") {
+      const registros = await registroTransferencia();
+      console.log("SERVIDOR REGISTROS", JSON.stringify(registros)); //! BORRAR
+      res.end(JSON.stringify(registros));
     }
   })
   .listen(3000, () => console.log("Server ON"));
