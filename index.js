@@ -68,7 +68,7 @@ http
         console.log("DATOS", datos); //! Borrar
         const respuesta = await transferencia(datos);
         console.log("RESPUESTA", respuesta); //! Borrar
-        res.end(JSON.stringify({status:'ok'})); //! cambiar OK
+        res.end(JSON.stringify({ status: "ok" })); //! cambiar OK
       });
     }
   })

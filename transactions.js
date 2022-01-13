@@ -10,12 +10,32 @@ const config = {
 
 const pool = new Pool(config);
 
-//? Elimina el elemento del medio
-const eliminarElemento = (a, index) => {
-  let newArray = [...a];
-  newArray.splice(index, 1);
-  //console.log(newArray); //! BORRAR
-  return newArray;
+//? Registro de transferencia
+const registroTransferencias = async (datos) => {
+  try {
+    const consultaEmisor = {
+      text: "SELECT id FROM usuarios WHERE nombre = $1",
+      values: [datos[0]],
+    };
+    const consultaIdEmisor = await pool.query(consultaEmisor);
+    const idEmisor = consultaIdEmisor.rows[0].id;
+
+    const consultaReceptor = {
+      text: "SELECT id FROM usuarios WHERE nombre = $1",
+      values: [datos[1]],
+    };
+    const consultaIdReceptor = await pool.query(consultaReceptor);
+    const idReceptor = consultaIdReceptor.rows[0].id;
+
+    const consultaRegistro = {
+      text: "INSERT INTO transferencias (emisor, receptor, monto) VALUES ($1, $2, $3) RETURNING *;", //TODO agregar
+      values: [idEmisor, idReceptor, datos[2]],
+    };
+    await pool.query(consultaRegistro);
+  } catch (err) {
+    console.log("registroTransferencia", err);
+    return err;
+  }
 };
 
 //? Transferencia de balance
@@ -23,23 +43,20 @@ const transferencia = async (datos) => {
   pool.connect(async (err_conexion, client, release) => {
     if (err_conexion) return console.log(err_conexion.code);
 
-    //console.log(datos); //! Borrar
-    //console.log(datos.slice(-2)); //! BORRAR
-
     try {
-      await client.query("BEGIN");
+      await consultaTransferencia();
+      await registroTransferencias(datos);
 
-      //TODO Colocar logica de registro de transferencias
-      //! Cambiar condicion id = id
+      await client.query("BEGIN");
       const descontar = {
         text: "UPDATE usuarios SET balance = balance - $2 WHERE nombre = $1 RETURNING *;",
-        values: eliminarElemento(datos, 1), //TODO datos[0], datos[1], datos[2]
+        values: [datos[0], datos[2]],
       };
       await client.query(descontar);
 
       const acreditar = {
         text: "UPDATE usuarios SET balance = balance + $2 WHERE nombre = $1 RETURNING *;",
-        values: datos.slice(-2),
+        values: [datos[1], datos[2]],
       };
       await client.query(acreditar);
 
@@ -57,22 +74,17 @@ const transferencia = async (datos) => {
   });
 };
 
-module.exports = { transferencia };
-
-//? Registra transferencias
-//TODO relacionar
-/*const registroTransferencia = async (datos) => {
-   const consulta = {
-    text: "INSERT INTO transferencias (emisor, receptor, monto) VALUES ($1, $2, $3) RETURNING *;",
-    values: datos,
-  };
+//? Mostrar transferencia
+const consultaTransferencia = async () => {
   try {
-    const result = await pool.query(consulta);
-    return result;
+    const consultaEmisor = await pool.query(
+      "SELECT nombre FROM usuarios INNER JOIN transferencias ON usuarios.id = transferencias.emisor"
+    );
+    console.log('CONSULTAAA',consultaEmisor.rows);
   } catch (err) {
-    console.log(err);
+    console.log("consultarTransferencia", err);
     return err;
   }
-}; */
+};
 
-//await registroTransferencia(datos); //TODO relacionar
+module.exports = { transferencia };
