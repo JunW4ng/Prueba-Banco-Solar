@@ -51,4 +51,15 @@ const editar = async (datos, id) => {
   }
 };
 
-module.exports = { insertar, consulta, editar };
+//? Elimina un usuario y sus datos
+const eliminar = async (id) => {
+  try {
+    const result = await pool.query(`DELETE FROM usuarios WHERE id = ${id}`);
+    return result;
+  } catch (err) {
+    console.log(err.code);
+    return err;
+  }
+};
+
+module.exports = { insertar, consulta, editar, eliminar };
