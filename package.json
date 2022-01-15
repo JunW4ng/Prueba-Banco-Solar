@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/JunW4ng/Prueba-Banco-Solar#readme",
   "dependencies": {
+    "moment": "^2.29.1",
     "pg": "^8.7.1"
   }
 }
