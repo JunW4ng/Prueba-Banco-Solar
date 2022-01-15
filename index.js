@@ -1,8 +1,10 @@
 const http = require("http");
 const fs = require("fs");
 const url = require("url");
+const port = 3000;
 const { insertar, consulta, editar, eliminar } = require("./userQuery");
-const { transferencia, registroTransferencia } = require("./transactions");
+const { transferencia } = require("./transactions");
+const { registroTablaTransferencia } = require("./tableTransactions");
 
 http
   .createServer(async (req, res) => {
@@ -68,15 +70,15 @@ http
         console.log("DATOS", datos); //! Borrar
         const respuesta = await transferencia(datos);
         console.log("RESPUESTA", respuesta); //! Borrar
-        res.end(JSON.stringify({ status: "ok" })); //! cambiar OK
+        res.end(JSON.stringify({ status: "OK" })); //! cambiar OK
       });
     }
 
     //? Mostrar tabla transferencias
     if (req.url == "/transferencias" && req.method === "GET") {
-      const registros = await registroTransferencia();
+      const registros = await registroTablaTransferencia();
       console.log("SERVIDOR REGISTROS", JSON.stringify(registros)); //! BORRAR
       res.end(JSON.stringify(registros));
     }
   })
-  .listen(3000, () => console.log("Server ON"));
+  .listen(port, () => console.log(`Escuchando port ${port}`));

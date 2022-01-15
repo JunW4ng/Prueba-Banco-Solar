@@ -1,5 +1,4 @@
 const { Pool } = require("pg");
-const moment = require("moment");
 
 const config = {
   user: "postgres",
@@ -14,28 +13,26 @@ const pool = new Pool(config);
 //? Registro de transferencia
 const registroTransferencias = async (datos) => {
   try {
-    const fecha = moment();
+    const fecha = new Date();
     const consultaEmisor = {
       text: "SELECT id FROM usuarios WHERE nombre = $1",
       values: [datos[0]],
     };
     const consultaIdEmisor = await pool.query(consultaEmisor);
     const idEmisor = consultaIdEmisor.rows[0].id;
-
     const consultaReceptor = {
       text: "SELECT id FROM usuarios WHERE nombre = $1",
       values: [datos[1]],
     };
     const consultaIdReceptor = await pool.query(consultaReceptor);
     const idReceptor = consultaIdReceptor.rows[0].id;
-
     const consultaRegistro = {
       text: "INSERT INTO transferencias (emisor, receptor, monto, fecha) VALUES ($1, $2, $3, $4) RETURNING *;",
       values: [idEmisor, idReceptor, datos[2], fecha],
     };
     await pool.query(consultaRegistro);
   } catch (err) {
-    console.log("registroTransferencia", err);
+    console.log("registroTransferencia", err.code);
     return err;
   }
 };
@@ -44,28 +41,22 @@ const registroTransferencias = async (datos) => {
 const transferencia = async (datos) => {
   pool.connect(async (err_conexion, client, release) => {
     if (err_conexion) return console.log(err_conexion.code);
-
     try {
-      await registroTransferencia();
       await registroTransferencias(datos);
-
       await client.query("BEGIN");
       const descontar = {
-        text: "UPDATE usuarios SET balance = balance - $2 WHERE nombre = $1 RETURNING *;",
+        text: "UPDATE usuarios SET balance = balance - $2 WHERE nombre = $1 RETURNING *;", //TODO Hacerlo con ID
         values: [datos[0], datos[2]],
       };
       await client.query(descontar);
-
       const acreditar = {
-        text: "UPDATE usuarios SET balance = balance + $2 WHERE nombre = $1 RETURNING *;",
+        text: "UPDATE usuarios SET balance = balance + $2 WHERE nombre = $1 RETURNING *;", //TODO Hacerlo con ID
         values: [datos[1], datos[2]],
       };
       await client.query(acreditar);
-
       await client.query("COMMIT");
     } catch (err) {
       await client.query("ROLLBACK");
-      console.log(err);
       console.log("Error codigo: " + err.code);
       console.log("Detalle del error" + err.detail);
       console.log("Tabla originaria del error: " + err.table);
@@ -76,25 +67,45 @@ const transferencia = async (datos) => {
   });
 };
 
+module.exports = { transferencia };
+
+/* // Prepared Statement
+const generarQuery = (name, rowMode, text, values) => ({
+  name,
+  rowMode,
+  text,
+  values,
+});
+
 //? Mostrar transferencias en tabla
-const registroTransferencia = async () => {
+const registroTablaTransferencia = async () => {
+  const sqlQuery =
+    "SELECT x.fecha, x.nombre, y.nombre_receptor, y.monto FROM (SELECT * FROM usuarios INNER JOIN transferencias ON usuarios.id = transferencias.emisor) AS x INNER JOIN (SELECT nombre AS nombre_receptor, receptor, monto FROM usuarios INNER JOIN transferencias ON usuarios.id = transferencias.receptor) AS y ON x.emisor != y.receptor";
+  const rowMode = "array";
+  const values = [];
   try {
-    const data = await pool.query(
-      "SELECT x.nombre, y.nombre_receptor, y.monto, x.fecha FROM (SELECT * FROM usuarios INNER JOIN transferencias ON usuarios.id = transferencias.emisor) AS x INNER JOIN (SELECT nombre AS nombre_receptor, receptor, monto FROM usuarios INNER JOIN transferencias ON usuarios.id = transferencias.receptor) AS y ON x.emisor != y.receptor"
+    const res = await pool.query(
+      generarQuery("consulta_tabla_transferencias", rowMode, sqlQuery, values)
     );
-    //console.log("ACAAAAA", data.rows); //! BORRAR
-    return data.rows;
+    console.log(res.rows);
+    return res.rows;
   } catch (err) {
     console.log("consultarTransferencia", err);
     return err;
   }
 };
-
-module.exports = { transferencia, registroTransferencia };
-
-/* const emisor = await pool.query(
-  "SELECT nombre AS emisor FROM usuarios INNER JOIN transferencias ON usuarios.id = transferencias.emisor"
-);
-const receptor = await pool.query(
-  "SELECT nombre AS receptor FROM usuarios INNER JOIN transferencias ON usuarios.id = transferencias.receptor"
-); */
+ */
+//! METODO SIN STATEMENT
+/* //? constante 'data' entrega un array con objetos que incluyen emisor, receptor, monto y fecha
+  const registroTablaTransferencia = async () => {
+    const data = await pool.query(
+      "SELECT x.fecha, x.nombre, y.nombre_receptor, y.monto FROM (SELECT * FROM usuarios INNER JOIN transferencias ON usuarios.id = transferencias.emisor) AS x INNER JOIN (SELECT nombre AS nombre_receptor, receptor, monto FROM usuarios INNER JOIN transferencias ON usuarios.id = transferencias.receptor) AS y ON x.emisor != y.receptor"
+    );
+    const dataRows = data.rows;
+    const mapeoDatos = dataRows.map((datos) => {
+      const { fecha, nombre, nombre_receptor, monto } = datos;
+      return [fecha, nombre, nombre_receptor, monto];
+    });
+    console.log("EEEEEEEEEEEEE", mapeoDatos); //! Borrar
+    return mapeoDatos;
+  }; */
