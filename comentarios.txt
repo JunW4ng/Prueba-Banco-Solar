@@ -1,0 +1,17 @@
+Errores sin resolver:
+
+1.- Archivo 'index.js' linea 70, me da por terminal un 'undefined' por lo que 
+    en el cliente me tira una alerta
+
+2.- Al hacer una transferencia, solo logro hacerla una vez, luego de
+    realizarla no me deja hacer otra, pero si queda registrada en la base
+    de datos.
+
+3.- Solo al reiniciar servidor y cliente, puedo registrar y mostrar en tabla
+    transferencias realizadas, al hacerlo por segunda o tercera vez me produce 
+    un bug que repite dos o tres veces alguna transferencia ya realizada.
+
+4.- Se logra ingresar en la base de datos el tiempo de la transferencia pero
+    al pasarla al GET (/transferencias), no me lee la fecha dada, sino el
+    time stamp de mi hora local. Esta se actualiza cada vez que refresco
+    la pagina.

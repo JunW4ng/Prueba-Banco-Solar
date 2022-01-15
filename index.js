@@ -67,17 +67,14 @@ http
       });
       req.on("end", async () => {
         const datos = Object.values(JSON.parse(body));
-        console.log("DATOS", datos); //! Borrar
         const respuesta = await transferencia(datos);
-        console.log("RESPUESTA", respuesta); //! Borrar
-        res.end(JSON.stringify({ status: "OK" })); //! cambiar OK
+        res.end(JSON.stringify(respuesta));
       });
     }
 
     //? Mostrar tabla transferencias
     if (req.url == "/transferencias" && req.method === "GET") {
       const registros = await registroTablaTransferencia();
-      console.log("SERVIDOR REGISTROS", JSON.stringify(registros)); //! BORRAR
       res.end(JSON.stringify(registros));
     }
   })

@@ -28,7 +28,6 @@ const registroTablaTransferencia = async () => {
     const res = await pool.query(
       generarQuery("consulta_tabla_transferencias", rowMode, sqlQuery, values)
     );
-    console.log(res.rows); //! BORRAR
     return res.rows;
   } catch (err) {
     console.log("registroTablaTransferencia", err.code);
