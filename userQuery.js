@@ -43,8 +43,7 @@ const editar = async (datos, id) => {
     values: datos,
   };
   try {
-    const result = await pool.query(consulta);
-    console.log(result.rows[0]);
+    await pool.query(consulta);
   } catch (err) {
     console.log(err.code);
     return err;

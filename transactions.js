@@ -45,12 +45,12 @@ const transferencia = async (datos) => {
       await registroTransferencias(datos);
       await client.query("BEGIN");
       const descontar = {
-        text: "UPDATE usuarios SET balance = balance - $2 WHERE nombre = $1 RETURNING *;", //TODO Hacerlo con ID
+        text: "UPDATE usuarios SET balance = balance - $2 WHERE nombre = $1 RETURNING *;",
         values: [datos[0], datos[2]],
       };
       await client.query(descontar);
       const acreditar = {
-        text: "UPDATE usuarios SET balance = balance + $2 WHERE nombre = $1 RETURNING *;", //TODO Hacerlo con ID
+        text: "UPDATE usuarios SET balance = balance + $2 WHERE nombre = $1 RETURNING *;",
         values: [datos[1], datos[2]],
       };
       await client.query(acreditar);
