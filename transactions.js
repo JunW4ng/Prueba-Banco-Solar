@@ -45,12 +45,12 @@ const transferencia = async (datos) => {
       await registroTransferencias(datos);
       await client.query("BEGIN");
       const descontar = {
-        text: "UPDATE usuarios SET balance = balance - $2 WHERE nombre = $1 RETURNING *;", //TODO Hacerlo con ID
+        text: "UPDATE usuarios SET balance = balance - $2 WHERE nombre = $1 RETURNING *;",
         values: [datos[0], datos[2]],
       };
       await client.query(descontar);
       const acreditar = {
-        text: "UPDATE usuarios SET balance = balance + $2 WHERE nombre = $1 RETURNING *;", //TODO Hacerlo con ID
+        text: "UPDATE usuarios SET balance = balance + $2 WHERE nombre = $1 RETURNING *;",
         values: [datos[1], datos[2]],
       };
       await client.query(acreditar);
@@ -68,44 +68,3 @@ const transferencia = async (datos) => {
 };
 
 module.exports = { transferencia };
-
-/* // Prepared Statement
-const generarQuery = (name, rowMode, text, values) => ({
-  name,
-  rowMode,
-  text,
-  values,
-});
-
-//? Mostrar transferencias en tabla
-const registroTablaTransferencia = async () => {
-  const sqlQuery =
-    "SELECT x.fecha, x.nombre, y.nombre_receptor, y.monto FROM (SELECT * FROM usuarios INNER JOIN transferencias ON usuarios.id = transferencias.emisor) AS x INNER JOIN (SELECT nombre AS nombre_receptor, receptor, monto FROM usuarios INNER JOIN transferencias ON usuarios.id = transferencias.receptor) AS y ON x.emisor != y.receptor";
-  const rowMode = "array";
-  const values = [];
-  try {
-    const res = await pool.query(
-      generarQuery("consulta_tabla_transferencias", rowMode, sqlQuery, values)
-    );
-    console.log(res.rows);
-    return res.rows;
-  } catch (err) {
-    console.log("consultarTransferencia", err);
-    return err;
-  }
-};
- */
-//! METODO SIN STATEMENT
-/* //? constante 'data' entrega un array con objetos que incluyen emisor, receptor, monto y fecha
-  const registroTablaTransferencia = async () => {
-    const data = await pool.query(
-      "SELECT x.fecha, x.nombre, y.nombre_receptor, y.monto FROM (SELECT * FROM usuarios INNER JOIN transferencias ON usuarios.id = transferencias.emisor) AS x INNER JOIN (SELECT nombre AS nombre_receptor, receptor, monto FROM usuarios INNER JOIN transferencias ON usuarios.id = transferencias.receptor) AS y ON x.emisor != y.receptor"
-    );
-    const dataRows = data.rows;
-    const mapeoDatos = dataRows.map((datos) => {
-      const { fecha, nombre, nombre_receptor, monto } = datos;
-      return [fecha, nombre, nombre_receptor, monto];
-    });
-    console.log("EEEEEEEEEEEEE", mapeoDatos); //! Borrar
-    return mapeoDatos;
-  }; */
