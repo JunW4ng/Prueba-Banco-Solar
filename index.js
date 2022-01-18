@@ -24,17 +24,17 @@ http
       req.on("data", (chunck) => {
         body += chunck;
       });
-      try {
-        req.on("end", async () => {
+      req.on("end", async () => {
+        try {
           const datos = Object.values(JSON.parse(body));
           const respuesta = await insertar(datos);
           res.writeHead(201, { "Content-Type": "application/json" });
           res.end(JSON.stringify(respuesta));
-        });
-      } catch (error) {
-        res.writeHead(500, { "Content-Type": "application/json" });
-        res.end("Error de servidor");
-      }
+        } catch (error) {
+          res.writeHead(500, { "Content-Type": "application/json" });
+          res.end("Error de servidor");
+        }
+      });
     }
 
     //? Muestra usuarios con sus balances
@@ -56,17 +56,17 @@ http
       req.on("data", (chunck) => {
         body += chunck;
       });
-      try {
-        res.writeHead(201, { "Content-Type": "application/json" });
-        req.on("end", async () => {
+      req.on("end", async () => {
+        try {
+          res.writeHead(201, { "Content-Type": "application/json" });
           const datos = Object.values(JSON.parse(body));
           const respuesta = await editar(datos, id);
           res.end(JSON.stringify(respuesta));
-        });
-      } catch (error) {
-        res.writeHead(400, { "Content-Type": "application/json" });
-        res.end();
-      }
+        } catch (error) {
+          res.writeHead(400, { "Content-Type": "application/json" });
+          res.end();
+        }
+      });
     }
 
     //? Elimina un usuario y sus datos
@@ -88,17 +88,17 @@ http
       req.on("data", (chunck) => {
         body += chunck;
       });
-      try {
-        res.writeHead(201, { "Content-Type": "application/json" });
-        req.on("end", async () => {
+      req.on("end", async () => {
+        try {
+          res.writeHead(201, { "Content-Type": "application/json" });
           const datos = Object.values(JSON.parse(body));
           const respuesta = await transferencia(datos);
           res.end(JSON.stringify({ status: "OK" }));
-        });
-      } catch (error) {
-        res.writeHead(500, { "Content-Type": "application/json" });
-        res.end("Error de servidor");
-      }
+        } catch (error) {
+          res.writeHead(500, { "Content-Type": "application/json" });
+          res.end("Error de servidor");
+        }
+      });
     }
 
     //? Mostrar tabla transferencias
