@@ -8,14 +8,12 @@ const { registroTablaTransferencia } = require("./tableTransactions");
 
 http
   .createServer(async (req, res) => {
-    let statusCode = res.statusCode;
     //? Levanta la pagina
     if (req.url == "/" && req.method == "GET") {
-      statusCode = 500;
       res.writeHeader(200, "content-type", "text/html");
       fs.readFile("index.html", "utf8", (err, appBanco) => {
         err
-          ? console.log(statusCode, "Error al cargar la pagina")
+          ? console.log("Error al cargar la pagina")
           : console.log("Pagina OK");
         res.end(appBanco);
       });
@@ -26,21 +24,28 @@ http
       req.on("data", (chunck) => {
         body += chunck;
       });
-      req.on("end", async () => {
-        const datos = Object.values(JSON.parse(body));
-        const respuesta = await insertar(datos);
-        res.end(JSON.stringify(respuesta));
-      });
+      try {
+        req.on("end", async () => {
+          const datos = Object.values(JSON.parse(body));
+          const respuesta = await insertar(datos);
+          res.writeHead(201, { "Content-Type": "application/json" });
+          res.end(JSON.stringify(respuesta));
+        });
+      } catch (error) {
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end("Error de servidor");
+      }
     }
 
     //? Muestra usuarios con sus balances
     if (req.url == "/usuarios" && req.method === "GET") {
-      statusCode = 500;
       try {
         const registros = await consulta();
+        res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify(registros));
       } catch (err) {
-        console.log(statusCode, err);
+        res.writeHead(500, { "Content-Type": "application/json" });
+        console.log("ERROR AL MOSTRAR USUARIOS");
       }
     }
 
@@ -51,18 +56,30 @@ http
       req.on("data", (chunck) => {
         body += chunck;
       });
-      req.on("end", async () => {
-        const datos = Object.values(JSON.parse(body));
-        const respuesta = await editar(datos, id);
-        res.end(JSON.stringify(respuesta));
-      });
+      try {
+        res.writeHead(201, { "Content-Type": "application/json" });
+        req.on("end", async () => {
+          const datos = Object.values(JSON.parse(body));
+          const respuesta = await editar(datos, id);
+          res.end(JSON.stringify(respuesta));
+        });
+      } catch (error) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end();
+      }
     }
 
     //? Elimina un usuario y sus datos
     if (req.url.startsWith("/usuario?") && req.method === "DELETE") {
-      const { id } = url.parse(req.url, true).query;
-      const registros = await eliminar(id);
-      res.end(JSON.stringify(registros));
+      try {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        const { id } = url.parse(req.url, true).query;
+        const registros = await eliminar(id);
+        res.end(JSON.stringify(registros));
+      } catch (error) {
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end("Error de servidor");
+      }
     }
 
     //? Realiza una transferencia
@@ -71,17 +88,29 @@ http
       req.on("data", (chunck) => {
         body += chunck;
       });
-      req.on("end", async () => {
-        const datos = Object.values(JSON.parse(body));
-        const respuesta = await transferencia(datos);
-        res.end(JSON.stringify({ status: "OK" }));
-      });
+      try {
+        res.writeHead(201, { "Content-Type": "application/json" });
+        req.on("end", async () => {
+          const datos = Object.values(JSON.parse(body));
+          const respuesta = await transferencia(datos);
+          res.end(JSON.stringify({ status: "OK" }));
+        });
+      } catch (error) {
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end("Error de servidor");
+      }
     }
 
     //? Mostrar tabla transferencias
     if (req.url == "/transferencias" && req.method === "GET") {
-      const registros = await registroTablaTransferencia();
-      res.end(JSON.stringify(registros));
+      try {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        const registros = await registroTablaTransferencia();
+        res.end(JSON.stringify(registros));
+      } catch (error) {
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end("Error de servidor");
+      }
     }
   })
   .listen(port, () => console.log(`Escuchando port ${port}`));
